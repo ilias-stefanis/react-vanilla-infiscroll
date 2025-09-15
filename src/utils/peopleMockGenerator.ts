@@ -45,10 +45,15 @@ export function generateMockPeople(
         return arr[Math.floor(seed.next() * arr.length)];
     }
 
+    function getRandomInt(min: number, max: number): number {
+        return Math.floor(seed.next() * (max - min + 1)) + min;
+    }
+
     function randomEmail(first: string, last: string): string {
-        return `${first.toLowerCase()}.${last.toLowerCase()}@${pickRandomItem(
-            emailPostfixes
-        )}`;
+        return `${first.toLowerCase()}.${last.toLowerCase()}-${getRandomInt(
+            1,
+            1000
+        )}@${pickRandomItem(emailPostfixes)}`;
     }
 
     const people = [];

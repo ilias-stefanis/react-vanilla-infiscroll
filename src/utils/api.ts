@@ -11,8 +11,8 @@ const peopleList = generateMockPeople(TOTAL_PEOPLE, SEED);
 
 type apiParams = {
     page?: number;
-    filterLastName?: string;
-    filterLanguage?: string;
+    filterLastName: string | null;
+    filterLanguage: string | null;
 };
 export type apiReturnType = Array<SinglePersonType> | { error: string };
 
@@ -20,12 +20,16 @@ async function getPeople({
     page = 1,
     filterLastName,
     filterLanguage,
-}: apiParams = {}): Promise<apiReturnType> {
+}: apiParams): Promise<apiReturnType> {
     return new Promise((resolve) => {
         setTimeout(() => {
+
+            console.log(
+                `API called with page=${page}, filterLastName=${filterLastName}, filterLanguage=${filterLanguage}`);
+
             let filteredPeople = peopleList;
 
-            if (filterLastName) {
+            if (filterLastName && filterLastName.trim() !== "") {
                 filteredPeople = filteredPeople.filter((person) =>
                     person.lastName
                         .toLowerCase()
@@ -33,7 +37,7 @@ async function getPeople({
                 );
             }
 
-            if (filterLanguage) {
+            if (filterLanguage && filterLanguage.trim() !== "") {
                 filteredPeople = filteredPeople.filter(
                     (person) => person.language === filterLanguage
                 );

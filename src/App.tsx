@@ -1,38 +1,42 @@
 import React, { useState, useEffect } from "react";
 import PersonList from "./components/PersonList";
 import Filter from "./components/Filter";
-import { getPeople, type apiReturnType } from "./utils/api";
 import useDebounce from "./hooks/useDebounce";
 import "./index.css";
 import "./App.css";
-import { peopleSchema, type SinglePersonType } from "./common/schemas";
+import { type paginationStateType } from "./common/types";
+import { usePeopleData } from "./hooks/usePeopleData";
 
 const App = () => {
-    const [people, setPeople] = useState<Array<SinglePersonType>>([]);
-    const [loading, setLoading] = useState(false);
-    const [page, setPage] = useState(1);
-    const [hasMore, setHasMore] = useState(true);
-
     // Read initial filter state from URL on component mount
     const urlParams = new URLSearchParams(window.location.search);
     const initialLastName = urlParams.get("lastName") || "";
     const initialLanguage = urlParams.get("language") || "";
 
+
     // Filter state
     const [lastNameFilter, setLastNameFilter] = useState(initialLastName);
     const [languageFilter, setLanguageFilter] = useState(initialLanguage);
 
-    // Debounce the last name filter to avoid excessive API calls
-    const debouncedLastName = useDebounce(lastNameFilter, 500);
+        // Debounce the last name filter to avoid excessive API calls
+    const debouncedLastName = useDebounce(lastNameFilter, 1500);
+
+    const [paginationState, setPaginationState] = useState<paginationStateType>(
+        {
+            page: 1,
+            filterLastName: debouncedLastName,
+            filterLanguage: languageFilter,
+        }
+    );
+
+    const { people, isLoading, hasMore, error } =
+        usePeopleData(paginationState);
+
+
+
 
     // Effect to handle initial load and filter changes
     useEffect(() => {
-        // Reset state when filters change
-        setPeople([]);
-        setPage(1);
-        setHasMore(true);
-        fetchPeople(true);
-
         // Update URL to reflect filters
         const params = new URLSearchParams();
         if (debouncedLastName) params.set("lastName", debouncedLastName);
@@ -41,61 +45,37 @@ const App = () => {
         window.history.pushState({}, "", `?${params.toString()}`);
     }, [debouncedLastName, languageFilter]);
 
-    // effect to load more data on page change (for infinite scroll)
-    useEffect(() => {
-        if (page > 1) {
-            fetchPeople();
-        }
-    }, [page]);
 
-    const fetchPeople = async (reset = false) => {
-        if (loading || (!hasMore && !reset)) return;
 
-        setLoading(true);
-        const newPage = reset ? 1 : page;
-        const data: apiReturnType = await getPeople({
-            page: newPage,
-            filterLastName: debouncedLastName,
-            filterLanguage: languageFilter,
-        });
+    function handleLastNameFilterChange(newLastName: string) {
+        setLastNameFilter(newLastName);
 
-        if ("error" in data) {
-            console.error(data.error);
-            setLoading(false);
-            return;
-        }
+        // Update pagination state
 
-        // while in this case data should always be valid, normally we should validate every incoming requested data
-        const parsedData = peopleSchema.safeParse(data);
-        if (!parsedData.success) {
-            console.error("Data validation error");
-            setLoading(false);
-            return;
-        }
+        setPaginationState((prevState) => ({
+            ...prevState,
+            filterLastName: newLastName,
+            page: 1, // reset to first page on filter change
+        }));
+    }
 
-        const people = parsedData.data;
+    function handleLanguageFilterChange(newLanguage: string) {
+        setLanguageFilter(newLanguage);
 
-        if (data.length === 0) {
-            setHasMore(false);
-        }
-
-        setPeople(
-            (prevPeople: Array<SinglePersonType>): Array<SinglePersonType> => {
-                // to handle potential duplicates from quick pagination
-                const uniquePeople = new Set([
-                    ...prevPeople.map((p) => p.email),
-                    ...people.map((p) => p.email),
-                ]);
-                const combinedPeople = [...prevPeople, ...people];
-                return combinedPeople.filter((p) => uniquePeople.has(p.email));
-            }
-        );
-        setLoading(false);
-    };
+        // Update pagination state
+        setPaginationState((prevState) => ({
+            ...prevState,
+            filterLanguage: newLanguage,
+            page: 1, // reset to first page on filter change
+        }));
+    }
 
     const handleLoadMore = () => {
-        if (!loading && hasMore) {
-            setPage((prevPage) => prevPage + 1);
+        if (!isLoading && hasMore) {
+            setPaginationState((prevState) => ({
+                ...prevState,
+                page: prevState.page + 1,
+            }));
         }
     };
 
@@ -105,14 +85,15 @@ const App = () => {
             <Filter
                 lastName={lastNameFilter}
                 language={languageFilter}
-                onLastNameChange={setLastNameFilter}
-                onLanguageChange={setLanguageFilter}
+                onLastNameChange={handleLastNameFilterChange}
+                onLanguageChange={handleLanguageFilterChange}
             />
             <PersonList
                 people={people}
-                loading={loading}
+                isLoading={isLoading}
                 hasMore={hasMore}
                 onLoadMore={handleLoadMore}
+                errorStatus={error}
             />
         </div>
     );

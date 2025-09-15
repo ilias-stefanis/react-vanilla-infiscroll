@@ -1,5 +1,6 @@
 import { z } from "zod";
 
+
 const personSchema = z.object({
     firstName: z.string(),
     lastName: z.string(),
@@ -8,7 +9,8 @@ const personSchema = z.object({
 });
 
 type SinglePersonType = z.infer<typeof personSchema>;
+type PeopleArrayType = z.infer<typeof peopleSchema>;
 
 const peopleSchema = z.array(personSchema);
 
-export { personSchema, peopleSchema, type SinglePersonType };
+export { personSchema, peopleSchema, type SinglePersonType, type PeopleArrayType , };

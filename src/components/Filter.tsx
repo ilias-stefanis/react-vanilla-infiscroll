@@ -2,7 +2,12 @@ import React from "react";
 
 const languages = ["Javascript", "Python", "Golang"];
 
-const Filter = ({ lastName, language, onLastNameChange, onLanguageChange }) => {
+const Filter = ({ lastName, language, onLastNameChange, onLanguageChange }:{
+    lastName: string;
+    language: string;
+    onLastNameChange: (newLastName: string) => void;
+    onLanguageChange: (newLanguage: string) => void;
+}) => {
     return (
         <div className="bg-white p-4 rounded-lg shadow-md mb-6 flex flex-col md:flex-row gap-4">
             <input
@@ -14,7 +19,7 @@ const Filter = ({ lastName, language, onLastNameChange, onLanguageChange }) => {
             />
             <select
                 value={language}
-                onChange={(e) => onLanguageChange(e.target.value)}
+                onChange={(e) => onLanguageChange(e.target.value || "")}
                 className="p-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
             >
                 <option value="">All Languages</option>
