@@ -16,7 +16,7 @@ type usePeopleReturnType = {
 };
 
 function usePeopleData(currentState: paginationStateType): usePeopleReturnType {
-    const [peopleList, setPeopleList] = useState<PeopleArrayType>([]);
+    const [people, setPeopleList] = useState<PeopleArrayType>([]);
     const [isLoading, setIsLoading] = useState<boolean>(true);
     const [hasMore, setHasMore] = useState<boolean>(true);
     const [error, setError] = useState<string | null>(null);
@@ -87,7 +87,7 @@ function usePeopleData(currentState: paginationStateType): usePeopleReturnType {
         };
     }, [page, filterLastName, filterLanguage]);
 
-    return { people: peopleList, isLoading, hasMore, error };
+    return { people, isLoading, hasMore, error };
 }
 
 export { usePeopleData };

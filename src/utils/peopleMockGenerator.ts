@@ -41,7 +41,7 @@ export function generateMockPeople(
     const emailPostfixes = ["example.com", "test.org", "mail.net"];
     const languages = ["Python", "Javascript", "Golang"];
 
-    function pickRandomItem<T>(arr: T[]): T {
+    function pickRandomItem<T>(arr: Array<T>): T {
         return arr[Math.floor(seed.next() * arr.length)];
     }
 
@@ -70,5 +70,8 @@ export function generateMockPeople(
                 | "Golang",
         });
     }
+
+    people.sort((a, b) => a.lastName.localeCompare(b.lastName));
+
     return people;
 }

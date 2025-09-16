@@ -1,8 +1,11 @@
-import React from "react";
-
 const languages = ["Javascript", "Python", "Golang"];
 
-const Filter = ({ lastName, language, onLastNameChange, onLanguageChange }:{
+const Filter = ({
+    lastName,
+    language,
+    onLastNameChange,
+    onLanguageChange,
+}: {
     lastName: string;
     language: string;
     onLastNameChange: (newLastName: string) => void;

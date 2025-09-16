@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import { useState } from "react";
 import InviteModal from "./InviteModal";
 
 import { type SinglePersonType } from "../common/schemas";
@@ -18,7 +18,7 @@ const Card = ({ person }: { person: SinglePersonType }) => {
             </p>
             <button
                 onClick={() => setIsModalOpen(true)}
-                className="mt-4 w-full bg-blue-600 light:bg-blue-600 text-white py-2 rounded-lg hover:bg-blue-700 transition duration-300"
+                className="mt-4 w-full bg-gray-950 light:bg-blue-600 text-white py-2 rounded-lg hover:bg-blue-700 transition duration-300"
             >
                 Invite
             </button>

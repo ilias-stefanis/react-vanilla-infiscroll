@@ -1,7 +1,7 @@
-import React, { useState, useEffect } from "react";
+import { useState, useEffect } from "react";
 import PersonList from "./components/PersonList";
 import Filter from "./components/Filter";
-import useDebounce from "./hooks/useDebounce";
+
 import "./index.css";
 import "./App.css";
 import { type paginationStateType } from "./common/types";
@@ -13,18 +13,14 @@ const App = () => {
     const initialLastName = urlParams.get("lastName") || "";
     const initialLanguage = urlParams.get("language") || "";
 
-
     // Filter state
     const [lastNameFilter, setLastNameFilter] = useState(initialLastName);
     const [languageFilter, setLanguageFilter] = useState(initialLanguage);
 
-        // Debounce the last name filter to avoid excessive API calls
-    const debouncedLastName = useDebounce(lastNameFilter, 1500);
-
     const [paginationState, setPaginationState] = useState<paginationStateType>(
         {
             page: 1,
-            filterLastName: debouncedLastName,
+            filterLastName: lastNameFilter,
             filterLanguage: languageFilter,
         }
     );
@@ -32,31 +28,36 @@ const App = () => {
     const { people, isLoading, hasMore, error } =
         usePeopleData(paginationState);
 
-
-
-
     // Effect to handle initial load and filter changes
     useEffect(() => {
         // Update URL to reflect filters
         const params = new URLSearchParams();
-        if (debouncedLastName) params.set("lastName", debouncedLastName);
+        if (lastNameFilter) params.set("lastName", lastNameFilter);
         if (languageFilter) params.set("language", languageFilter);
 
         window.history.pushState({}, "", `?${params.toString()}`);
-    }, [debouncedLastName, languageFilter]);
+    }, [lastNameFilter, languageFilter]);
 
-
+    // To avoid sending a request on every keystroke, we debounce the last name filter input
+    const [debounceTimer, setDebounceTimer] = useState<null | number>(null);
 
     function handleLastNameFilterChange(newLastName: string) {
+        if (debounceTimer) {
+            clearTimeout(debounceTimer);
+        }
+
         setLastNameFilter(newLastName);
 
-        // Update pagination state
-
-        setPaginationState((prevState) => ({
-            ...prevState,
-            filterLastName: newLastName,
-            page: 1, // reset to first page on filter change
-        }));
+        setDebounceTimer(
+            setTimeout(function () {
+                // Update pagination state
+                setPaginationState((prevState) => ({
+                    ...prevState,
+                    filterLastName: newLastName,
+                    page: 1, // reset to first page on filter change
+                }));
+            }, 500)
+        );
     }
 
     function handleLanguageFilterChange(newLanguage: string) {
