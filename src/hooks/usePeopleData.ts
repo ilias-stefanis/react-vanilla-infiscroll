@@ -8,7 +8,7 @@ import {
 import { getPeople, type apiReturnType } from "../utils/api";
 import type { paginationStateType } from '../common/types';
 
-type usePeopleReturnType = {
+export type usePeopleReturnType = {
     people: PeopleArrayType;
     isLoading: boolean;
     hasMore: boolean;
@@ -44,21 +44,25 @@ function usePeopleData(currentState: paginationStateType): usePeopleReturnType {
             if ("error" in data) {
                 setError(data.error);
                 setIsLoading(false);
+                setHasMore(false);
                 return;
             }
 
             // while in this case data should always be valid, normally we should validate every incoming requested data
             const parsedData = peopleSchema.safeParse(data);
 
+
             if (!parsedData.success) {
-                console.error(`Data validation error for page ${page}`);
+                console.error(`Data validation error: ${parsedData.error}`);
+                setError(`Data validation error: ${parsedData.error}`);
+
                 setIsLoading(false);
                 return;
             }
 
-            const people = parsedData.data;
+            const parsedPeople = parsedData.data;
 
-            if (data.length === 0) {
+            if (parsedPeople.length === 0) {
                 setHasMore(false);
             } else {
                 setHasMore(true);
@@ -66,14 +70,15 @@ function usePeopleData(currentState: paginationStateType): usePeopleReturnType {
 
             // if we are loading the first page, we replace the list (this happens on filter change)
             if (page === 1) {
-                setPeopleList(people);
+
+                setPeopleList(parsedPeople);
                 setIsLoading(false);
                 return;
             }
 
             setPeopleList((prevPeople: PeopleArrayType): PeopleArrayType => {
                 // assuming no duplicates in the data source, and that no new entries are added while paginating.
-                return [...prevPeople, ...people];
+                return [...prevPeople, ...parsedPeople];
             });
 
             setIsLoading(false);

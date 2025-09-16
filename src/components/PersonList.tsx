@@ -1,15 +1,22 @@
-import React, { useRef, useEffect } from "react";
+import React, { useRef, useEffect, type RefObject } from "react";
 import Card from "./Card";
 import LoadingSpinner from "./LoadingSpinner";
 import type { SinglePersonType } from "../common/schemas";
+import type { usePeopleReturnType } from "../hooks/usePeopleData";
 
-const PersonList = ({
+interface PersonListProps extends usePeopleReturnType {
+    onLoadMore: () => void;
+    listRef: RefObject<HTMLDivElement | null>;
+}
+
+function PersonList({
     people,
     isLoading,
     hasMore,
     onLoadMore,
-    errorStatus,
-}) => {
+    listRef,
+    error,
+}: PersonListProps) {
     const loader = useRef(null);
 
     useEffect(() => {
@@ -35,8 +42,11 @@ const PersonList = ({
     }, [hasMore, isLoading, onLoadMore]);
 
     return (
-        <div>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        <>
+            <div
+                ref={listRef}
+                className="grid p-6 grid-cols-1 md:grid-cols-3 xl:grid-cols-4 gap-6"
+            >
                 {people.map((person: SinglePersonType) => (
                     <Card
                         key={person.email}
@@ -45,7 +55,7 @@ const PersonList = ({
                 ))}
             </div>
             {isLoading && <LoadingSpinner />}
-            {errorStatus && (
+            {error && (
                 <p className="text-center text-red-500 my-4">
                     Error loading data. Please try again.
                 </p>
@@ -55,12 +65,17 @@ const PersonList = ({
                     No more people to load.
                 </p>
             )}
+            {!isLoading && people.length === 0 && (
+                <p className="text-center text-gray-500 my-4">
+                    No people found.
+                </p>
+            )}
             <div
                 ref={loader}
                 style={{ height: "20px" }}
             ></div>
-        </div>
+        </>
     );
-};
+}
 
 export default PersonList;

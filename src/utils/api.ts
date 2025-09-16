@@ -3,8 +3,8 @@ import { generateMockPeople } from "./peopleMockGenerator";
 import Rand from "rand-seed";
 
 const SEED = new Rand("1234");
-const PAGE_SIZE = 20;
-const TOTAL_PEOPLE = 200;
+const PAGE_SIZE = 40;
+const TOTAL_PEOPLE = 500;
 
 // Pre-generate a list of people based on first load, using a deterministic seed
 const peopleList = generateMockPeople(TOTAL_PEOPLE, SEED);

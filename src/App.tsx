@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import PersonList from "./components/PersonList";
 import Filter from "./components/Filter";
 
@@ -7,15 +7,17 @@ import "./App.css";
 import { type paginationStateType } from "./common/types";
 import { usePeopleData } from "./hooks/usePeopleData";
 
-const App = () => {
-    // Read initial filter state from URL on component mount
-    const urlParams = new URLSearchParams(window.location.search);
-    const initialLastName = urlParams.get("lastName") || "";
-    const initialLanguage = urlParams.get("language") || "";
+// Read initial filter state from URL on page load
+const urlParams = new URLSearchParams(window.location.search);
+const initialLastName = urlParams.get("lastName") || "";
+const initialLanguage = urlParams.get("language") || "";
 
+const App = () => {
     // Filter state
     const [lastNameFilter, setLastNameFilter] = useState(initialLastName);
     const [languageFilter, setLanguageFilter] = useState(initialLanguage);
+
+    const listRef = useRef<null | HTMLDivElement>(null);
 
     const [paginationState, setPaginationState] = useState<paginationStateType>(
         {
@@ -38,6 +40,12 @@ const App = () => {
         window.history.pushState({}, "", `?${params.toString()}`);
     }, [lastNameFilter, languageFilter]);
 
+
+    // To make reseting smooth
+    function scrollToTop() {
+        listRef.current?.scrollIntoView({ block: "start", behavior: "smooth" });
+    }
+
     // To avoid sending a request on every keystroke, we debounce the last name filter input
     const [debounceTimer, setDebounceTimer] = useState<null | number>(null);
 
@@ -56,6 +64,8 @@ const App = () => {
                     filterLastName: newLastName,
                     page: 1, // reset to first page on filter change
                 }));
+
+                scrollToTop();
             }, 500)
         );
     }
@@ -69,6 +79,7 @@ const App = () => {
             filterLanguage: newLanguage,
             page: 1, // reset to first page on filter change
         }));
+        scrollToTop();
     }
 
     const handleLoadMore = () => {
@@ -81,21 +92,45 @@ const App = () => {
     };
 
     return (
-        <div className="container mx-auto p-4">
-            <h1 className="text-3xl font-bold mb-6">People Catalog</h1>
-            <Filter
-                lastName={lastNameFilter}
-                language={languageFilter}
-                onLastNameChange={handleLastNameFilterChange}
-                onLanguageChange={handleLanguageFilterChange}
-            />
-            <PersonList
-                people={people}
-                isLoading={isLoading}
-                hasMore={hasMore}
-                onLoadMore={handleLoadMore}
-                errorStatus={error}
-            />
+        <div className="min-h-screen bg-gray-100 flex">
+            <div className="w-64 bg-gray-950 shadow-md hidden xl:flex flex-col p-6">
+                <div className="text-2xl text-white font-bold mb-8 text-gray-700">
+                    Dashboard
+                </div>
+                <nav className="flex flex-col gap-4">
+                    <span className="text-gray-50 font-bold">People</span>
+                    <span className="text-gray-200">Settings</span>
+                    <span className="text-gray-200">Reports</span>
+                    <span className="text-gray-200">Help</span>
+                </nav>
+            </div>
+
+            <div className="flex-1 flex flex-col max-h-screen ">
+                <header className="bg-white shadow px-6 py-4 flex flex-col gap-2 md:flex-row md:items-center md:justify-between">
+                    <h1 className="text-3xl font-bold text-gray-700">
+                        People Catalog
+                    </h1>
+                </header>
+                <div className="w-full md:w-auto">
+                    <Filter
+                        lastName={lastNameFilter}
+                        language={languageFilter}
+                        onLastNameChange={handleLastNameFilterChange}
+                        onLanguageChange={handleLanguageFilterChange}
+                    />
+                </div>
+
+                <div className="flex-1  overflow-y-auto">
+                    <PersonList
+                        people={people}
+                        isLoading={isLoading}
+                        hasMore={hasMore}
+                        onLoadMore={handleLoadMore}
+                        error={error}
+                        listRef={listRef}
+                    />
+                </div>
+            </div>
         </div>
     );
 };
