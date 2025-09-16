@@ -71,7 +71,11 @@ export function generateMockPeople(
         });
     }
 
-    people.sort((a, b) => a.lastName.localeCompare(b.lastName));
+    people.sort((a, b) => {
+        const lastNameCompare = a.lastName.localeCompare(b.lastName);
+        if (lastNameCompare !== 0) return lastNameCompare;
+        return a.firstName.localeCompare(b.firstName);
+    });
 
     return people;
 }
