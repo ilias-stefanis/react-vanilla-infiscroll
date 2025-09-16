@@ -1,4 +1,4 @@
-import React, { useRef, useEffect, type RefObject } from "react";
+import { useRef, useEffect, type RefObject } from "react";
 import Card from "./Card";
 import LoadingSpinner from "./LoadingSpinner";
 import type { SinglePersonType } from "../common/schemas";
